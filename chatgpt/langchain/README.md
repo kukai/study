@@ -3,3 +3,4 @@
 - langchain-search-web
 - langchain-indexes
 - langchain-pdf
+- langchain-agent
