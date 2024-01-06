@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "study-langchain"
+version = "0.1.0"
+description = ""
+authors = ["kukai"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+langchain = "^0.0.354"
+openai = "^1.6.1"
+youtube-transcript-api = "^0.6.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
