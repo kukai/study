@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Fargate Cluster with ECR
+
+Parameters:
+  UserName:
+    Type: String
+    Default: kukai
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub
+        - ${UserName}-fargate
+        - { UserName: !Ref UserName }
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+  WebECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub
+        - ${UserName}-web
+        - { UserName: !Ref UserName }
