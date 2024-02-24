@@ -1,0 +1,6 @@
+.terraform/
+
+main
+lambda_function_payload.zip
+*.tfstate
+*.tfstate.*
