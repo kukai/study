@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "get-holidays"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.13"
+jpholiday = "^0.1.8"
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^6.2.0"
+taskipy = "^1.12.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.tasks]
+build = "pyinstaller --onefile --name get-holidays main.py"
