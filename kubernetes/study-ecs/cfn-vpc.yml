@@ -1,0 +1,269 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "kukai VPC Cloud"
+
+#Parameters:
+
+#Mappings:
+
+Resources:
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: 11.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: "kukai VPC Cloud"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 11.0.0.0/24
+      AvailabilityZone: "ap-northeast-1c"
+      Tags:
+        - Key: Name
+          Value: "kukai VPC Public 1c Tier"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 11.0.50.0/24
+      AvailabilityZone: "ap-northeast-1a"
+      Tags:
+        - Key: Name
+          Value: "kukai VPC Public 1a Tier"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 11.0.100.0/24
+      AvailabilityZone: "ap-northeast-1c"
+      Tags:
+        - Key: Name
+          Value: "kukai VPC Private Tier"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: "kukai VPC Cloud IG"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+
+  GatewayToInternet:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId:
+        Ref: InternetGateway
+      VpcId:
+        Ref: VPC
+
+  PublicRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: "kukai VPC Gateway RT"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayToInternet
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+
+  PublicSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet1
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  PublicSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet2
+      RouteTableId:
+        Ref: PublicRouteTable
+
+#  # Managed NAT の設定
+#  # 使ってなくてもコストがかかるので、ネットワーク性能が不要なら NAT Instance の利用を推奨
+#  # <https://dev.classmethod.jp/articles/reduce-unnecessary-costs-for-nat-gateway/#nat-gateway-%E3%81%AB%E9%96%A2%E3%82%8F%E3%82%8B%E6%96%99%E9%87%91%E3%81%AE%E3%81%8A%E3%81%95%E3%82%89%E3%81%84>
+#  ManagedNAT:
+#    Type: AWS::EC2::NatGateway
+#    Properties:
+#      AllocationId:
+#        Fn::GetAtt:
+#          - ManagedNATEIP
+#          - AllocationId
+#      SubnetId:
+#        Ref: PublicSubnet
+#
+#  ManagedNATEIP:
+#    Type: AWS::EC2::EIP
+#    Properties:
+#      Domain: vpc
+
+  NATInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-014061df9d813ea90 # amzn-ami-vpc-nat
+      InstanceType: t3.nano
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          GroupSet:
+            - Ref: NATSecurityGroup
+          SubnetId:
+            Ref: PublicSubnet1
+          PrivateIpAddress: 11.0.0.10
+      CreditSpecification:
+        CPUCredits: standard
+      SourceDestCheck: false
+      Tags:
+        - Key: Name
+          Value: "kukai VPC NAT Instance"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+        - Key: Schedule
+          Value: ec2-startstop-weekday
+
+  PrivateRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: "kukai VPC Private RT"
+        - Key: Phase
+          Value: development
+        - Key: Project
+          Value: SB
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      InstanceId:
+        Ref: NATInstance
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet
+      RouteTableId:
+        Ref: PrivateRouteTable
+
+#  # S3 Endpoint
+#  S3Endpoint:
+#    Type: "AWS::EC2::VPCEndpoint"
+#    Properties:
+#      RouteTableIds:
+#        - !Ref PublicRouteTable
+#        - !Ref PrivateRouteTable
+#      ServiceName: !Join ['', [com.amazonaws., !Ref 'AWS::Region', .s3]]
+#      VpcId: !Ref VPC
+
+  # NAT Instance 用の SecurityGroup
+  NATSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: VPC
+    Properties:
+      GroupDescription: SG for NAT
+      SecurityGroupIngress:
+        -
+          SourceSecurityGroupId: !GetAtt PrivateSecurityGroup.GroupId
+          FromPort: -1
+          IpProtocol: -1
+          ToPort: -1
+      VpcId:
+        Ref: VPC
+
+  # プライベートサブネットの SecurityGroup
+  PrivateSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: VPC
+    Properties:
+      GroupDescription: "SG for Private subnet"
+      VpcId:
+        Ref: VPC
+
+  PrivateSecurityGroupInboundRuleFromPrivateSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: PrivateSecurityGroup
+      IpProtocol: -1 # all
+      SourceSecurityGroupId:
+        Ref: PrivateSecurityGroup
+
+  PrivateSecurityGroupInboundRuleFromELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: PrivateSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId:
+        Ref: ELBSecurityGroup
+
+  # ELBの SecurityGroup
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: VPC
+    Properties:
+      GroupDescription: "SG for ELB subnet"
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+        -
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
