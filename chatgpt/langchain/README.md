@@ -6,3 +6,5 @@
 - langchain-agent
 - summaryze-and-translate-youtube
   - YoutubeのTransciptを要約して翻訳する
+- langchain-basic
+  - 基本
