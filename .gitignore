@@ -1,3 +1,22 @@
+# IDE and Editor files
 **/.vscode/
 **/.idea/
 **/.fleet/
+**/*.swp
+**/*.swo
+**/*~
+
+# OS generated files
+**/.DS_Store
+**/.DS_Store?
+**/._*
+**/.Spotlight-V100
+**/.Trashes
+**/ehthumbs.db
+**/Thumbs.db
+
+# Environment files (機密情報保護)
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
