@@ -1,0 +1,6 @@
+# Generated image files
+output.jpg
+output.png
+*.jpg
+*.png
+*.gif

@@ -1,7 +1,7 @@
 from langchain.llms import LlamaCpp
 
 llm = LlamaCpp(
-    model_path = "./Downloads/ELYZA-japanese-Llama-2-7b-fast-instruct-q2_K.gguf",
+    model_path = "./models/ELYZA-japanese-Llama-2-7b-fast-instruct-q2_K.gguf",
     temperature=0.2,
     max_tokens=100,
     n_gpu_layers = 1,
