@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Noise Generator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Noise Generator</h1>
+  <div id="buttons">
+    <!-- <button onclick="playNoise('white')">Play White Noise</button> -->
+    <button onclick="playNoise('pink')">Play Pink Noise</button>
+    <!-- <button onclick="playNoise('brown')">Play Brown Noise</button> -->
+    <button onclick="stopNoise()">Stop</button>
+  </div>
+  <div id="volumeControl">
+    <label for="volume">Volume: </label>
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.2" onchange="setVolume(this.value)">
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
