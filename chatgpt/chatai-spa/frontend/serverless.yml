@@ -1,0 +1,54 @@
+service: chatbot-frontend
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: ap-northeast-1
+
+plugins:
+  - serverless-finch
+
+custom:
+  client:
+    bucketName: kukai-chatbot-frontend
+    distributionFolder: build
+
+resources:
+  Resources:
+    WebAppCloudFrontDistribution:
+      Type: 'AWS::CloudFront::Distribution'
+      Properties:
+        DistributionConfig:
+          Aliases:
+            - chat.kukai.dev
+          ViewerCertificate:
+            AcmCertificateArn: arn:aws:acm:us-east-1:405062412934:certificate/be7d2626-2e75-4c6e-b6ac-fb32688531ae
+            SslSupportMethod: 'sni-only'          
+          Origins:
+            - DomainName: ${self:custom.client.bucketName}.s3.amazonaws.com
+              Id: WebApp
+              CustomOriginConfig:
+                HTTPPort: 80
+                HTTPSPort: 443
+                OriginProtocolPolicy: http-only
+          Enabled: true
+          DefaultRootObject: index.html
+          DefaultCacheBehavior:
+            AllowedMethods:
+              - GET
+              - HEAD
+            TargetOriginId: WebApp
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            ViewerProtocolPolicy: redirect-to-https
+    ChatBotRoute53RecordSet:
+      Type: 'AWS::Route53::RecordSet'
+      Properties:
+        HostedZoneName: 'kukai.dev.'  # don't forget the trailing dot
+        Name: 'chat.kukai.dev.'
+        Type: 'A'
+        AliasTarget:
+          HostedZoneId: Z2FDTNDATAQYW2  # CloudFront hosted zone ID
+          DNSName: !GetAtt WebAppCloudFrontDistribution.DomainName

@@ -1,0 +1,70 @@
+service: openai-alexa-skill
+
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+frameworkVersion: "3"
+
+plugins:
+  - serverless-webpack
+  - serverless-alexa-skills
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-northeast-1
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+
+custom:
+  alexa:
+    # Step 1: Run `sls alexa auth` to authenticate
+    # Step 2: Run `sls alexa create --name "Serverless Alexa Typescript" --locale en-GB --type custom` to create a new skill
+    skills:
+      # Step 3: Paste the skill id returned by the create command here:
+      # - id: amzn1.ask.skill.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # 別アカウント
+      - id: ${env:ALEXA_SKILL_ID}
+        manifest:
+          publishingInformation:
+            locales:
+              ja-JP:
+                name: 会話ボット
+          apis:
+            custom:
+              endpoint:
+                # Step 4: Do your first deploy of your Serverless stack
+                # Step 5: Paste the ARN of your lambda here:
+                # uri: arn:aws:lambda:[region]:[account-id]:function:[function-name]
+                uri: ${env:LAMBDA_ARN}
+                # Step 6: Run `sls alexa update` to deploy the skill manifest
+                # Step 7: Run `sls alexa build` to build the skill interaction model
+                # Step 8: Enable the skill in the Alexa app to start testing.
+          manifestVersion: "1.0"
+        models:
+          ja-JP:
+            interactionModel:
+              languageModel:
+                invocationName: 会話ボット
+                intents:
+                  - name: PromptIntent
+                    slots:
+                    - name: Content
+                      type: AMAZON.City
+                    samples:
+                      - '{Content}'
+                  - name: AMAZON.StopIntent
+                    samples:
+                      - 'ストップ'
+                      - '終了'
+                      - '止めて'
+                      - '終わり'
+                      - 'さようなら'
+                      - 'ありがとう'
+
+functions:
+  alexa:
+    handler: handler.alexa
+    events:
+      - alexaSkill: ${env:ALEXA_SKILL_ID}
+    timeout: 60

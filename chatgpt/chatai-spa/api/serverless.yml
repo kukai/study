@@ -1,0 +1,27 @@
+service: chatbot-service
+
+provider:
+  name: aws
+  runtime: python3.10
+  stage: ${opt:stage, 'dev'}
+  region: 'ap-northeast-1'
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+  httpApi:
+    cors: true
+
+functions:
+  chat:
+    handler: handler.handler
+    events:
+      - httpApi:
+          path: /chat
+          method: post
+    timeout: 60
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    usepoetry: true
