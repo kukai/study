@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "chat-ui"
+version = "0.1.0"
+description = ""
+authors = ["kukai"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^1.17.1"
+streamlit = "^1.33.0"
+langchain = "^0.1.16"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
